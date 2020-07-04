@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?><process version="9.7.001">
+  <context>
+    <input/>
+    <output/>
+    <macros/>
+  </context>
+  <operator activated="true" class="process" compatibility="9.7.001" expanded="true" name="Process">
+    <parameter key="logverbosity" value="init"/>
+    <parameter key="random_seed" value="2001"/>
+    <parameter key="send_mail" value="never"/>
+    <parameter key="notification_email" value=""/>
+    <parameter key="process_duration_for_mail" value="30"/>
+    <parameter key="encoding" value="SYSTEM"/>
+    <process expanded="true">
+      <operator activated="true" class="retrieve" compatibility="9.7.001" expanded="true" height="68" name="Retrieve 210_Recipes_complete_HTML (Sample = 1000)" width="90" x="45" y="34">
+        <parameter key="repository_entry" value="../100 Rezeptlisten/120 RecipeList_HTMLs - All (20k Sample)"/>
+      </operator>
+      <operator activated="true" class="loop_collection" compatibility="9.7.001" expanded="true" height="82" name="Loop Collection" width="90" x="179" y="34">
+        <parameter key="set_iteration_macro" value="true"/>
+        <parameter key="macro_name" value="iteration"/>
+        <parameter key="macro_start_value" value="1"/>
+        <parameter key="unfold" value="false"/>
+        <process expanded="true">
+          <operator activated="true" class="handle_exception" compatibility="9.7.001" expanded="true" height="82" name="Handle Exception" width="90" x="313" y="34">
+            <parameter key="add_details_to_log" value="false"/>
+            <process expanded="true">
+              <operator activated="true" class="text:data_to_documents" compatibility="9.3.001" expanded="true" height="68" name="Data to Documents (2)" width="90" x="45" y="34">
+                <parameter key="select_attributes_and_weights" value="false"/>
+                <list key="specify_weights"/>
+              </operator>
+              <operator activated="true" class="text:process_documents" compatibility="9.3.001" expanded="true" height="103" name="Process Documents (2)" width="90" x="179" y="34">
+                <parameter key="create_word_vector" value="true"/>
+                <parameter key="vector_creation" value="TF-IDF"/>
+                <parameter key="add_meta_information" value="true"/>
+                <parameter key="keep_text" value="false"/>
+                <parameter key="prune_method" value="none"/>
+                <parameter key="prune_below_percent" value="3.0"/>
+                <parameter key="prune_above_percent" value="30.0"/>
+                <parameter key="prune_below_rank" value="0.05"/>
+                <parameter key="prune_above_rank" value="0.95"/>
+                <parameter key="datamanagement" value="double_sparse_array"/>
+                <parameter key="data_management" value="auto"/>
+                <process expanded="true">
+                  <operator activated="true" class="web:extract_html_text_content" compatibility="9.3.001" expanded="true" height="68" name="Extract Content" width="90" x="112" y="34">
+                    <parameter key="extract_content" value="false"/>
+                    <parameter key="minimum_text_block_length" value="1"/>
+                    <parameter key="override_content_type_information" value="true"/>
+                    <parameter key="neglegt_span_tags" value="true"/>
+                    <parameter key="neglect_p_tags" value="true"/>
+                    <parameter key="neglect_b_tags" value="true"/>
+                    <parameter key="neglect_i_tags" value="true"/>
+                    <parameter key="neglect_br_tags" value="true"/>
+                    <parameter key="ignore_non_html_tags" value="true"/>
+                  </operator>
+                  <operator activated="true" class="text:tokenize" compatibility="9.3.001" expanded="true" height="68" name="Tokenize" width="90" x="313" y="34">
+                    <parameter key="mode" value="specify characters"/>
+                    <parameter key="characters" value=" &quot;"/>
+                    <parameter key="language" value="English"/>
+                    <parameter key="max_token_length" value="3"/>
+                  </operator>
+                  <operator activated="true" class="text:filter_tokens_by_content" compatibility="9.3.001" expanded="true" height="68" name="Filter Tokens (by Content)" width="90" x="447" y="34">
+                    <parameter key="condition" value="matches"/>
+                    <parameter key="string" value="https://www.chefkoch.de/rezepte/"/>
+                    <parameter key="regular_expression" value="https://www.chefkoch.de/rezepte/[0-9].*"/>
+                    <parameter key="case_sensitive" value="false"/>
+                    <parameter key="invert condition" value="false"/>
+                  </operator>
+                  <connect from_port="document" to_op="Extract Content" to_port="document"/>
+                  <connect from_op="Extract Content" from_port="document" to_op="Tokenize" to_port="document"/>
+                  <connect from_op="Tokenize" from_port="document" to_op="Filter Tokens (by Content)" to_port="document"/>
+                  <connect from_op="Filter Tokens (by Content)" from_port="document" to_port="document 1"/>
+                  <portSpacing port="source_document" spacing="0"/>
+                  <portSpacing port="sink_document 1" spacing="0"/>
+                  <portSpacing port="sink_document 2" spacing="0"/>
+                </process>
+              </operator>
+              <operator activated="true" class="transpose" compatibility="9.7.001" expanded="true" height="82" name="Transpose (2)" width="90" x="313" y="34"/>
+              <operator activated="true" class="filter_examples" compatibility="9.7.001" expanded="true" height="103" name="Filter Examples (2)" width="90" x="447" y="34">
+                <parameter key="parameter_expression" value=""/>
+                <parameter key="condition_class" value="custom_filters"/>
+                <parameter key="invert_filter" value="false"/>
+                <list key="filters_list">
+                  <parameter key="filters_entry_key" value="id.contains.https://www\.chefkoch\.de/rezepte"/>
+                </list>
+                <parameter key="filters_logic_and" value="true"/>
+                <parameter key="filters_check_metadata" value="true"/>
+              </operator>
+              <operator activated="true" class="select_attributes" compatibility="9.7.001" expanded="true" height="82" name="Select Attributes (2)" width="90" x="581" y="34">
+                <parameter key="attribute_filter_type" value="single"/>
+                <parameter key="attribute" value="id"/>
+                <parameter key="attributes" value=""/>
+                <parameter key="use_except_expression" value="false"/>
+                <parameter key="value_type" value="attribute_value"/>
+                <parameter key="use_value_type_exception" value="false"/>
+                <parameter key="except_value_type" value="time"/>
+                <parameter key="block_type" value="attribute_block"/>
+                <parameter key="use_block_type_exception" value="false"/>
+                <parameter key="except_block_type" value="value_matrix_row_start"/>
+                <parameter key="invert_selection" value="false"/>
+                <parameter key="include_special_attributes" value="false"/>
+              </operator>
+              <connect from_port="in 1" to_op="Data to Documents (2)" to_port="example set"/>
+              <connect from_op="Data to Documents (2)" from_port="documents" to_op="Process Documents (2)" to_port="documents 1"/>
+              <connect from_op="Process Documents (2)" from_port="example set" to_op="Transpose (2)" to_port="example set input"/>
+              <connect from_op="Transpose (2)" from_port="example set output" to_op="Filter Examples (2)" to_port="example set input"/>
+              <connect from_op="Filter Examples (2)" from_port="example set output" to_op="Select Attributes (2)" to_port="example set input"/>
+              <connect from_op="Select Attributes (2)" from_port="example set output" to_port="out 1"/>
+              <portSpacing port="source_in 1" spacing="0"/>
+              <portSpacing port="source_in 2" spacing="0"/>
+              <portSpacing port="sink_out 1" spacing="0"/>
+              <portSpacing port="sink_out 2" spacing="0"/>
+            </process>
+            <process expanded="true">
+              <connect from_port="in 1" to_port="out 1"/>
+              <portSpacing port="source_in 1" spacing="0"/>
+              <portSpacing port="source_in 2" spacing="0"/>
+              <portSpacing port="sink_out 1" spacing="0"/>
+              <portSpacing port="sink_out 2" spacing="0"/>
+            </process>
+          </operator>
+          <connect from_port="single" to_op="Handle Exception" to_port="in 1"/>
+          <connect from_op="Handle Exception" from_port="out 1" to_port="output 1"/>
+          <portSpacing port="source_single" spacing="0"/>
+          <portSpacing port="sink_output 1" spacing="0"/>
+          <portSpacing port="sink_output 2" spacing="0"/>
+        </process>
+      </operator>
+      <operator activated="true" class="append" compatibility="9.7.001" expanded="true" height="82" name="Append" width="90" x="313" y="34">
+        <parameter key="datamanagement" value="double_array"/>
+        <parameter key="data_management" value="auto"/>
+        <parameter key="merge_type" value="all"/>
+      </operator>
+      <operator activated="true" class="store" compatibility="9.7.001" expanded="true" height="68" name="Store" width="90" x="447" y="34">
+        <parameter key="repository_entry" value="210 Recipe_Links - All (20k Sample)"/>
+      </operator>
+      <connect from_op="Retrieve 210_Recipes_complete_HTML (Sample = 1000)" from_port="output" to_op="Loop Collection" to_port="collection"/>
+      <connect from_op="Loop Collection" from_port="output 1" to_op="Append" to_port="example set 1"/>
+      <connect from_op="Append" from_port="merged set" to_op="Store" to_port="input"/>
+      <connect from_op="Store" from_port="through" to_port="result 1"/>
+      <portSpacing port="source_input 1" spacing="0"/>
+      <portSpacing port="sink_result 1" spacing="0"/>
+      <portSpacing port="sink_result 2" spacing="0"/>
+    </process>
+  </operator>
+</process>
